@@ -19,11 +19,11 @@ export const getCart = async () => {
     return response.json();
 };
 
-export const addToCart = async (productId: number, quantity: number) => {
+export const addToCart = async (productId: number, quantity: number, size?: string, color?: string) => {
     const response = await fetch(`${API_URL}/cart/add`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ productId, quantity }),
+        body: JSON.stringify({ productId, quantity, size, color }),
     });
     if (!response.ok) {
         throw new Error('Failed to add item to cart.');
@@ -42,11 +42,11 @@ export const removeFromCart = async (productId: number) => {
     return response.json();
 };
 
-export const updateCartQuantity = async (productId: number, quantity: number) => {
-    const response = await fetch(`${API_URL}/cart/update/${productId}`, {
+export const updateCartQuantity = async (cartItemId: number, quantity: number, size?: string, color?: string) => {
+    const response = await fetch(`${API_URL}/cart/update/${cartItemId}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ quantity }),
+        body: JSON.stringify({ quantity, size, color }),
     });
     if (!response.ok) {
         throw new Error('Failed to update item quantity.');
