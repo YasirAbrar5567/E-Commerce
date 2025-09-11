@@ -17,9 +17,6 @@ export interface Product {
 
 export interface CartItem extends Product {
   quantity: number;
-  size?: string;
-  color?: string;
-  cart_item_id?: number;
 }
 
 export interface User {

@@ -201,7 +201,7 @@ app.get('/api/cart', verifyToken, (req, res) => {
 
         const cartId = carts[0].id;
         const getCartItemsQuery = `
-            SELECT p.id, p.name, p.price, p.image_url as imageUrl, ci.quantity, ci.size, ci.color, ci.id as cart_item_id
+            SELECT p.id, p.name, p.price, p.image_url as imageUrl, ci.quantity 
             FROM cart_items ci
             JOIN products p ON ci.product_id = p.id
             WHERE ci.cart_id = ?
@@ -280,10 +280,10 @@ app.post('/api/cart/add', verifyToken, (req, res) => {
     });
 });
 
-// Remove item from cart (updated to handle cart_item_id)
-app.delete('/api/cart/remove/:cartItemId', verifyToken, (req, res) => {
+// Remove item from cart
+app.delete('/api/cart/remove/:productId', verifyToken, (req, res) => {
     const userId = req.user.id;
-    const { cartItemId } = req.params;
+    const { productId } = req.params;
 
     const getCartIdQuery = 'SELECT id FROM carts WHERE user_id = ?';
     db.query(getCartIdQuery, [userId], (err, carts) => {
@@ -291,8 +291,8 @@ app.delete('/api/cart/remove/:cartItemId', verifyToken, (req, res) => {
             return res.status(500).json({ error: 'Cart not found.' });
         }
         const cartId = carts[0].id;
-        const deleteQuery = 'DELETE FROM cart_items WHERE cart_id = ? AND id = ?';
-        db.query(deleteQuery, [cartId, cartItemId], (err, result) => {
+        const deleteQuery = 'DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?';
+        db.query(deleteQuery, [cartId, productId], (err, result) => {
             if (err) {
                 console.error('Error removing item from cart:', err);
                 return res.status(500).json({ error: 'Error removing item from cart.' });
@@ -305,11 +305,11 @@ app.delete('/api/cart/remove/:cartItemId', verifyToken, (req, res) => {
     });
 });
 
-// Update item quantity in cart (updated to handle cart_item_id)
-app.put('/api/cart/update/:cartItemId', verifyToken, (req, res) => {
+// Update item quantity in cart
+app.put('/api/cart/update/:productId', verifyToken, (req, res) => {
     const userId = req.user.id;
-    const { cartItemId } = req.params;
-    const { quantity, size, color } = req.body;
+    const { productId } = req.params;
+    const { quantity } = req.body;
 
     if (!quantity || quantity <= 0) {
         return res.status(400).json({ error: 'A valid quantity is required.' });
@@ -321,23 +321,8 @@ app.put('/api/cart/update/:cartItemId', verifyToken, (req, res) => {
             return res.status(500).json({ error: 'Cart not found.' });
         }
         const cartId = carts[0].id;
-        
-        let updateQuery = 'UPDATE cart_items SET quantity = ?';
-        let queryParams = [quantity];
-        
-        if (size !== undefined) {
-            updateQuery += ', size = ?';
-            queryParams.push(size);
-        }
-        if (color !== undefined) {
-            updateQuery += ', color = ?';
-            queryParams.push(color);
-        }
-        
-        updateQuery += ' WHERE cart_id = ? AND id = ?';
-        queryParams.push(cartId, cartItemId);
-        
-        db.query(updateQuery, queryParams, (err, result) => {
+        const updateQuery = 'UPDATE cart_items SET quantity = ? WHERE cart_id = ? AND product_id = ?';
+        db.query(updateQuery, [quantity, cartId, productId], (err, result) => {
             if (err) {
                 console.error('Error updating item quantity:', err);
                 return res.status(500).json({ error: 'Error updating item quantity.' });
